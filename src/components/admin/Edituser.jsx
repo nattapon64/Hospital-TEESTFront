@@ -142,7 +142,7 @@ function Edituser() {
                 <label className="w-[125px]">รหัสผ่าน :</label>
                 <input
                   className="w-[250px] h-[35px] mx-5 rounded-md px-2"
-                  type="text"
+                  type="password"
                   name="password1"
                   minLength={6}
                   value={input.password1}

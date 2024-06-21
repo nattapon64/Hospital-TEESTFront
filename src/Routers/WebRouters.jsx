@@ -15,6 +15,7 @@ import Changpassuser from "../components/user/changpassuser";
 import ReportUserOT from "../components/user/reportUserOT";
 import ReportUser from "../components/admin/reportuser";
 import Reportsumuser from "../components/admin/reportsumuser";
+import AddUserSystem from "../components/admin/Addusersystem";
 
 
 const guestRouter =createBrowserRouter([
@@ -73,6 +74,7 @@ const adminRouter = createBrowserRouter([
       { path: '/Edituser', element: <Edituser /> },
       { path: '/Reportuser', element: <ReportUser /> },
       { path: '/Reportsumuser', element: <Reportsumuser /> },
+      { path: '/AddUserSystem', element: <AddUserSystem /> },
       { path: '*', element: <p>PAGE NOT FOUND</p>},
     ]
   }

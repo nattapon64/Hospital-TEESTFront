@@ -23,7 +23,7 @@ function ReportSumUser() {
                     },
                 });
 
-                console.log("API response:", response.data); // ล็อกการตอบกลับ
+                // console.log("API response:", response.data); // ล็อกการตอบกลับ
                 setSumUser(response.data);
             } catch (err) {
                 console.error("Error fetching data:", err); // ล็อกข้อผิดพลาด
@@ -37,7 +37,7 @@ function ReportSumUser() {
     }, []);
 
     useEffect(() => {
-        console.log("sumUser state:", sumUser); // ล็อกสถานะหลังจากตั้งค่า
+        // console.log("sumUser state:", sumUser); // ล็อกสถานะหลังจากตั้งค่า
     }, [sumUser]);
 
     if (loading) {

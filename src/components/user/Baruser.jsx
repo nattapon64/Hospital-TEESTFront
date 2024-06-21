@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 function Baruser() {
   return (
-    <div>
+    <div className="flex h-screen">
       <Sidebar>
         <Menu className="border-r border-b border-slate-300">
         <MenuItem component={<Link to="/Mainuser" />}> หน้าหลัก</MenuItem>

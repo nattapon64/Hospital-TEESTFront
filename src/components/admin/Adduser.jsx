@@ -174,13 +174,13 @@ function Adduser() {
               <div className="flex justify-end gap-7 px-10">
                 <button
                   onClick={hdlSubmit}
-                  className="bg-blue-500 hover:bg-white hover:text-teal-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-100"
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition duration-300"
                 >
                   สมัคร
                 </button>
                 <button
                   onClick={hdlReload}
-                  className="bg-blue-500 hover:bg-white hover:text-teal-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-100"
+                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition duration-300"
                 >
                   ยกเลิก
                 </button>

@@ -15,7 +15,7 @@ function bar() {
             <MenuItem component={<Link to="/Edituser" />}>
               แก้ไขข้อมูลผู้ใช้งาน
             </MenuItem>
-            <MenuItem>ข้อมูลเจ้าหน้าที่</MenuItem>
+            <MenuItem component={<Link to={"/AddUserSystem"}/>}>ข้อมูลเจ้าหน้าที่</MenuItem>
           </SubMenu>
           <SubMenu label="รายงาน">
             <MenuItem component={<Link to={"/Reportuser"}/>}>รายงานแยกตามประเภท</MenuItem>
