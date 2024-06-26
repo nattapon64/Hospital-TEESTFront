@@ -19,7 +19,7 @@ const ReportUser = () => {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log('API response for user types:', response);
+                // console.log('API response for user types:', response);
                 if (response.data && response.data.role) {
                     setUserTypes(response.data.role);
                 } else {
@@ -43,13 +43,16 @@ const ReportUser = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log('API response for users:', response);
-            if (response.data && response.data.user) {
-                setMaxCount(response.data.totalCount || 0);
-                setUsers(response.data.user);
+            console.log(users)
+            // console.log(response.data)
+            // console.log('API response for users:', response);
+            if (response.data != 0) {
+                setMaxCount(response.data.length || 0);
+                setUsers(response.data);
                 setIsSearch(true);
+                // console.log(response)
             } else {
-                console.error('Invalid user data:', response.data);
+                // console.log('Invalid user data:', response.data);
                 setUsers([]);
             }
         } catch (error) {

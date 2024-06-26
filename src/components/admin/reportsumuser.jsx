@@ -76,6 +76,7 @@ function ReportSumUser() {
         <div className='flex'>
             <Barr/>
             <div className='flex flex-col w-[70%] gap-10'>
+                <p className='flex justify-center text-2xl my-6 font-semibold'>รายงานยอดผู้ใช้งาน</p>
                 {sumUser.length > 0 ? (
                     <>
                         <table className="w-full table-auto border-collapse border border-gray-200 mt-4">

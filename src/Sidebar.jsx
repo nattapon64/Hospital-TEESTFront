@@ -21,7 +21,7 @@ function bar() {
             <MenuItem component={<Link to={"/Reportuser"}/>}>รายงานแยกตามประเภท</MenuItem>
             <MenuItem>รายงานค้นหาตามชื่อ</MenuItem>
             <MenuItem component={<Link to={"/Reportsumuser"}/>}>รายงานยอดสรุปเจ้าหน้าที่</MenuItem>
-            <MenuItem>รายงานข้อมูลเจ้าหน้าที่</MenuItem>
+            <MenuItem component={<Link to={"/ReportsumuseBA"}/>}>รายงานข้อมูลเจ้าหน้าที่</MenuItem>
             <MenuItem>รายงานค่าตอบแทน</MenuItem>
             <MenuItem>รายงานสรุปประเภท OT</MenuItem>
             <MenuItem>รายงานสรุป OT แพทย์</MenuItem>

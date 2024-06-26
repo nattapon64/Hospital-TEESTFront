@@ -57,7 +57,7 @@ function Adduser() {
         alert("Create user success");
         location.reload();
       }
-      console.log(rs);
+      // console.log(rs);
     } catch (err) {
       alert(err.massage);
     }
