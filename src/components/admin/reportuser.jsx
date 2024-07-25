@@ -1,94 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Bar from "../../Sidebar";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 const ReportUser = () => {
     const [typeUserID, setTypeUserID] = useState('');
     const [userTypes, setUserTypes] = useState([]);
     const [users, setUsers] = useState([]);
     const [maxCount, setMaxCount] = useState(0);
-    const [skipstudent, setSkipstudent] = useState(0);
+    const [skip, setSkip] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [isSearch, setIsSearch] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchUserTypes = async () => {
             try {
-                let token = localStorage.getItem("token");
+                const token = localStorage.getItem("token");
                 const response = await axios.get("http://localhost:8000/admin/roleuser", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { Authorization: `Bearer ${token}` },
                 });
-                // console.log('API response for user types:', response);
-                if (response.data && response.data.role) {
+                if (response.data?.role) {
                     setUserTypes(response.data.role);
                 } else {
                     console.error('Invalid response structure:', response.data);
                 }
             } catch (error) {
                 console.error('Error fetching user types:', error);
+                setError('Failed to fetch user types.');
             }
         };
         fetchUserTypes();
     }, []);
 
-    const handleSearch = async (skip = 0) => {
+    const handleSearch = async (skipValue = 1) => {
         try {
-            let token = localStorage.getItem("token");
+            setIsLoading(true);
+            const token = localStorage.getItem("token");
             if (!typeUserID) {
                 throw new Error("Typeuser is not defined");
             }
-            const response = await axios.get(`http://localhost:8000/admin/reportuser/${typeUserID}?skip=${skip}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+            const response = await axios.get(`http://localhost:8000/admin/reportuser/${typeUserID}?page=${skipValue}`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            console.log(users)
-            // console.log(response.data)
-            // console.log('API response for users:', response);
-            if (response.data != 0) {
-                setMaxCount(response.data.length || 0);
-                setUsers(response.data);
+
+            if (response.data) {
+                const { data = [], total = 0 } = response.data;
+                setMaxCount(total);
+                setUsers(data);
+                setTotalPages(Math.ceil(total / 20)); // Assuming 20 items per page
                 setIsSearch(true);
-                // console.log(response)
             } else {
-                // console.log('Invalid user data:', response.data);
                 setUsers([]);
             }
         } catch (error) {
             console.error('Error searching users:', error);
             setUsers([]);
+            setError('Failed to fetch users.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         if (isSearch) {
-            handleSearch(skipstudent);
+            handleSearch(skip);
         }
-    }, [skipstudent]);
+    }, [isSearch, typeUserID, skip]);
 
     const nextPage = () => {
-        setSkipstudent((skip) => skip + 10);
+        if (skip < totalPages) {
+            setSkip((prevSkip) => prevSkip + 1);
+        }
     };
 
     const backPage = () => {
-        setSkipstudent((skip) => Math.max(0, skip - 10));
+        if (skip > 1) {
+            setSkip((prevSkip) => Math.max(1, prevSkip - 1));
+        }
+    };
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setSkip(page);
+        }
     };
 
     return (
-        <div className="flex gap-2">
+        <div className="flex gap-4">
             <Bar />
-            <div className='w-full'>
+            <div className='w-full p-6'>
                 <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-                    <h2 className="text-xl font-bold mb-6">รายงานผู้ใช้</h2>
+                    <h2 className="text-2xl font-bold mb-6">รายงานผู้ใช้</h2>
                     <div className="mb-4">
                         <label htmlFor="ddlTypeUser" className="block text-gray-700 font-semibold mb-2">เลือกประเภทผู้ใช้:</label>
-                        <div className="flex">
+                        <div className="flex items-center">
                             <select
                                 id="ddlTypeUser"
                                 value={typeUserID}
                                 onChange={(e) => setTypeUserID(e.target.value)}
-                                className="flex-grow mr-4 p-2 border rounded"
+                                className="flex-grow mr-4 p-2 border rounded-md border-gray-300"
                             >
                                 <option value="">-- เลือกประเภทผู้ใช้ --</option>
                                 {userTypes.map((type) => (
@@ -98,16 +111,24 @@ const ReportUser = () => {
                                 ))}
                             </select>
                             <button
-                                onClick={() => handleSearch()}
-                                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+                                onClick={() => setIsSearch(true)}
+                                className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center"
+                                disabled={isLoading}
                             >
+                                <FontAwesomeIcon icon={faSearch} className="mr-2" />
                                 ค้นหา
                             </button>
                         </div>
                     </div>
                 </div>
                 <p className="mb-4">จำนวนผู้ใช้ทั้งหมด: <strong>{maxCount}</strong> คน</p>
-                {users.length > 0 ? (
+                {isLoading ? (
+                    <div className="flex justify-center items-center">
+                        <div className="loader">Loading...</div> {/* Add a loader CSS class here */}
+                    </div>
+                ) : error ? (
+                    <p className="text-red-500">{error}</p>
+                ) : users.length > 0 ? (
                     <table className="w-full table-auto border-collapse border border-gray-200">
                         <thead>
                             <tr className="bg-gray-100">
@@ -133,22 +154,37 @@ const ReportUser = () => {
                 ) : (
                     <p className="text-red-500">No users found</p>
                 )}
-                <div className="gap-2 flex flex-row float-right">
-                    <button 
-                        onClick={backPage} 
-                        className={`btn btn-outline btn-error ${skipstudent <= 0 ? 'disabled:opacity-50' : ''}`}
-                        disabled={skipstudent <= 0}
-                    >
-                        back
-                    </button>
-                    <button 
-                        onClick={nextPage} 
-                        className={`btn btn-outline btn-success ${skipstudent + 10 >= maxCount ? 'disabled:opacity-50' : ''}`}
-                        disabled={skipstudent + 10 >= maxCount}
-                    >
-                        next
-                    </button>
-                </div>
+                {isSearch && (
+                    <div className="flex items-center justify-between mt-4">
+                        <button
+                            onClick={backPage}
+                            className={`bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700 flex items-center ${skip <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={skip <= 1 || isLoading}
+                        >
+                            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                            Back
+                        </button>
+                        <div className="flex items-center">
+                            <span className="text-gray-700 mr-4">Page {skip} of {totalPages}</span>
+                            <input
+                                type="number"
+                                value={skip}
+                                onChange={(e) => handlePageChange(Number(e.target.value))}
+                                min={1}
+                                max={totalPages}
+                                className="w-16 p-2 border rounded-md border-gray-300"
+                            />
+                        </div>
+                        <button
+                            onClick={nextPage}
+                            className={`bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-700 flex items-center ${skip >= totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={skip >= totalPages || isLoading}
+                        >
+                            <FontAwesomeIcon icon={faArrowRight} className="mr-2" />
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

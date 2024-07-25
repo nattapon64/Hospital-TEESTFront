@@ -1,45 +1,54 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import axios from 'axios'
+import axios from 'axios';
 import Swal from "sweetalert2";
 
-// const hdlSubmit = () => {
-//     window.location.href="/Main"
-// }
-
 function Login() {
-  const { setUser } = useAuth()
+  const { setUser } = useAuth();
   const [input, setInput] = useState({
     passrname1: '',
     password1: ''
-  })
+  });
 
   const hdlChange = e => {
-    setInput(prv => ({ ...prv, [e.target.name]: e.target.value}))
-  }
+    setInput(prv => ({ ...prv, [e.target.name]: e.target.value }));
+  };
 
   const hdlSubmit = async e => {
+    e.preventDefault();
     try {
-      e.preventDefault()
-      const rs = await axios.post('http://localhost:8000/auth/login', input)
-      localStorage.setItem('token', rs.data.token)
+      const rs = await axios.post('http://localhost:8000/auth/login', input);
+      localStorage.setItem('token', rs.data.token);
       const rs1 = await axios.get('http://localhost:8000/auth/me', {
-        headers: { Authorization: `Bearer ${rs.data.token}`}
+        headers: { Authorization: `Bearer ${rs.data.token}` }
       });
-      setUser(rs1.data)
-      if (rs1.status == 200) {
+      setUser(rs1.data);
+      if (rs1.status === 200) {
         Swal.fire({
           title: "Login Success",
           text: "Login web site success",
-         icon: "success",
-        })
+          icon: "success",
+        });
       }
     } catch (err) {
-      console.log(err.message)
+      console.log(err.message);
+      if (err.response && err.response.status === 401) {
+        Swal.fire({
+          title: "Login Failed",
+          text: "Incorrect username or password",
+          icon: "error",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "An error occurred. Please try again later.",
+          icon: "error",
+        });
+      }
     }
-  }
-  
+  };
+
   return (
     <form onSubmit={hdlSubmit}>
       <div>
@@ -68,7 +77,7 @@ function Login() {
                 onChange={hdlChange}
               />
             </div>
-            <button  className="bg-blue-500 hover:bg-white hover:text-teal-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-100">
+            <button className="bg-blue-500 hover:bg-white hover:text-teal-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-100">
               เข้าสู่ระบบ
             </button>
           </div>

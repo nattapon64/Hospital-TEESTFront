@@ -17,6 +17,11 @@ import ReportUser from "../components/admin/reportuser";
 import Reportsumuser from "../components/admin/reportsumuser";
 import AddUserSystem from "../components/admin/Addusersystem";
 import ReportsumuseBA from "../components/admin/reportsumuseBA";
+import ReportsumtypeOT from "../components/admin/reportsumtypeOT";
+import AddtypeOT from "../components/admin/addtypeOT";
+import UploadExcelDatabase from "../components/admin/UploadExcelDatabase";
+import ReportsumOTU01 from "../components/admin/reportsumOTU01";
+import ReMoOTDetai02 from "../components/admin/ReMoOTDetai02";
 
 
 const guestRouter =createBrowserRouter([
@@ -77,6 +82,11 @@ const adminRouter = createBrowserRouter([
       { path: '/Reportsumuser', element: <Reportsumuser /> },
       { path: '/AddUserSystem', element: <AddUserSystem /> },
       { path: '/ReportsumuseBA', element: <ReportsumuseBA /> },
+      { path: '/ReportsumtypeOT', element: <ReportsumtypeOT /> },
+      { path: '/AddtypeOT', element: <AddtypeOT/>},
+      { path: '/UploadExcelDatabase', element: <UploadExcelDatabase/>},
+      { path: '/ReportsumOTU01', element: <ReportsumOTU01/>},
+      { path: '/ReMoOTDetai02/*', element: <ReMoOTDetai02/>},
       { path: '*', element: <p>PAGE NOT FOUND</p>},
     ]
   }
