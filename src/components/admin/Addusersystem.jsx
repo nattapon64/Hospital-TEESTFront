@@ -31,14 +31,6 @@ function Addusersystem() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const hdlChange = (e) => {
-        setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const hdlSearchInputChange = (e) => {
-        setSearchInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
     useEffect(() => {
         const fetchAddusersystem = async () => {
             const token = localStorage.getItem("token");
@@ -47,6 +39,7 @@ function Addusersystem() {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setLoadAddusersystem(response.data.Addusersystem);
+                // console.log(response.data.Addusersystem)
             } catch (error) {
                 console.error("Error fetching addusersystem data:", error);
                 toast.error("เกิดข้อผิดพลาดในการดึงข้อมูลหน่วยงาน");
@@ -55,6 +48,13 @@ function Addusersystem() {
         fetchAddusersystem();
     }, []);
 
+    const hdlChange = (e) => {
+        setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const hdlSearchInputChange = (e) => {
+        setSearchInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
     const hdlSearch = async () => {
         setLoading(true);
         const token = localStorage.getItem("token");
@@ -62,12 +62,14 @@ function Addusersystem() {
 
         try {
             const response = await axios.get(
-                `http://localhost:8000/admin/user?card=${searchID}&username=${username}`, {
+                `http://localhost:8000/admin/user?CID=${searchID}&username=${username}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            const user = response.data.user || null;
-            if (user && (user.CID || user.username)) {
+            const users = response.data.users || [];
+            if (users.length > 0) {
+                // Set the first user in the list as the selected user
+                const user = users[0];
                 setSelectedUser(user);
                 setInput((prev) => ({ ...prev, ...user }));
             } else {
@@ -82,9 +84,10 @@ function Addusersystem() {
         }
     };
 
+
     const hdlAddUserSystem = async () => {
         const { CID, username, typeuserName, office_id } = input;
-
+        console.log(input)
         if (!CID || !username || !typeuserName || !office_id) {
             toast.error("กรุณากรอกข้อมูลที่จำเป็นทั้งหมด");
             return;
@@ -116,34 +119,22 @@ function Addusersystem() {
             <div className='flex flex-col mx-4 my-4 max-w-[1000px] w-full gap-4 shadow-lg p-4 bg-white rounded-lg border border-gray-300'>
                 <h1 className="text-xl font-semibold text-gray-800 mb-4">เพิ่มข้อมูลผู้ใช้</h1>
                 <div className='flex flex-wrap gap-4'>
-                    <div className="flex flex-col w-full sm:w-1/2">
-                        <label className="text-sm font-medium text-gray-600">รหัสบัตรประชาชน :</label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                className="w-full p-2 border-2 border-gray-300 rounded-md focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 transition pl-10"
-                                placeholder="กรอกรหัสบัตรประชาชนที่นี่..."
-                                name="searchID"
-                                value={searchInput.searchID}
-                                onChange={hdlSearchInputChange}
-                            />
-                            <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2 text-gray-600 text-lg" />
-                        </div>
-                    </div>
-                    <div className="flex flex-col w-full sm:w-1/2">
-                        <label className="text-sm font-medium text-gray-600">ชื่อ - นามสกุล :</label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                className="w-full p-2 border-2 border-gray-300 rounded-md focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 transition pl-10"
-                                placeholder="กรอกชื่อ - นามสกุลที่นี่..."
-                                name="username"
-                                value={searchInput.username}
-                                onChange={hdlSearchInputChange}
-                            />
-                            <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2 text-gray-600 text-lg" />
-                        </div>
-                    </div>
+                    <InputField
+                        label="รหัสบัตรประชาชน :"
+                        placeholder="กรอกรหัสบัตรประชาชนที่นี่..."
+                        name="searchID"
+                        value={searchInput.searchID}
+                        onChange={hdlSearchInputChange}
+                        icon={faSearch}
+                    />
+                    <InputField
+                        label="ชื่อ - นามสกุล :"
+                        placeholder="กรอกชื่อ - นามสกุลที่นี่..."
+                        name="username"
+                        value={searchInput.username}
+                        onChange={hdlSearchInputChange}
+                        icon={faSearch}
+                    />
                     <button
                         className={`self-end bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-600 transition flex items-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                         onClick={hdlSearch}
@@ -153,25 +144,23 @@ function Addusersystem() {
                         ค้นหา
                     </button>
                 </div>
-                <div className="flex flex-col gap-4 mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
-                    <div className="flex flex-col">
-                        <label className="text-sm font-medium text-gray-700">รหัสบัตร :</label>
-                        <p className="bg-white p-2 border border-gray-300 rounded-md text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-                            {selectedUser ? selectedUser.CID : "ไม่พบข้อมูล"}
-                        </p>
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="text-sm font-medium text-gray-700">ชื่อ - นามสกุล :</label>
-                        <p className="bg-white p-2 border border-gray-300 rounded-md text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-                            {selectedUser ? selectedUser.username : "ไม่พบข้อมูล"}
-                        </p>
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="text-sm font-medium text-gray-700">ประเภทเจ้าหน้าที่ :</label>
-                        <p className="bg-white p-2 border border-gray-300 rounded-md text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
-                            {selectedUser ? selectedUser.typeuserName : "ไม่พบข้อมูล"}
-                        </p>
-                    </div>
+                <UserDetails selectedUser={selectedUser} />
+                <div className="flex-1 p-2">
+                    <label className="block text-gray-700 mb-1 text-sm">หน่วยงาน</label>
+                    <select
+                        className="w-full h-[35px] rounded-r-md border border-gray-300 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        name="office_id" // Change name attribute to "office_id"
+                        id="office_id" // Change id attribute to "office_id"
+                        value={input.office_id} // Update value to "input.office_id"
+                        onChange={hdlChange}
+                    >
+                        <option disabled value="">เลือกหน่วยงาน</option>
+                        {loadAddusersystem.map((el) => (
+                            <option key={el.office_id} value={el.office_id}>
+                                {el.office_name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className='flex gap-4 mt-4'>
                     <button
@@ -195,5 +184,41 @@ function Addusersystem() {
         </div>
     );
 }
+
+const InputField = ({ label, placeholder, name, value, onChange, icon }) => (
+    <div className="flex flex-col w-full sm:w-1/2">
+        <label className="text-sm font-medium text-gray-600">{label}</label>
+        <div className="relative">
+            <input
+                type="text"
+                className="w-full p-2 border-2 border-gray-300 rounded-md focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-600 transition pl-10"
+                placeholder={placeholder}
+                name={name}
+                value={value}
+                onChange={onChange}
+                aria-label={label}
+            />
+            <FontAwesomeIcon icon={icon} className="absolute left-2 top-2 text-gray-600 text-lg" />
+        </div>
+    </div>
+);
+
+const UserDetails = ({ selectedUser }) => (
+    <div className="flex flex-col gap-4 mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+        <DetailRow label="รหัสบัตร :" value={selectedUser ? selectedUser.CID : "ไม่พบข้อมูล"} />
+        <DetailRow label="ชื่อ - นามสกุล :" value={selectedUser ? selectedUser.username : "ไม่พบข้อมูล"} />
+        <DetailRow label="ประเภทเจ้าหน้าที่ :" value={selectedUser ? selectedUser.typeuserName : "ไม่พบข้อมูล"} />
+    </div>
+);
+
+
+const DetailRow = ({ label, value }) => (
+    <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <p className="bg-white p-2 border border-gray-300 rounded-md text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
+            {value}
+        </p>
+    </div>
+);
 
 export default Addusersystem;

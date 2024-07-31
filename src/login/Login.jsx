@@ -20,6 +20,7 @@ function Login() {
     try {
       const rs = await axios.post('http://localhost:8000/auth/login', input);
       localStorage.setItem('token', rs.data.token);
+      // console.log(rs)
       const rs1 = await axios.get('http://localhost:8000/auth/me', {
         headers: { Authorization: `Bearer ${rs.data.token}` }
       });

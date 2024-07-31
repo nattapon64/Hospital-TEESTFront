@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Bar from '../../Sidebar';
 import axios from 'axios';
+import { debounce } from 'lodash';
+import { toast } from 'react-toastify';
 
 function ReportSumUseBA() {
     const [selectedOption, setSelectedOption] = useState('');
@@ -10,11 +12,23 @@ function ReportSumUseBA() {
     const [searchInput, setSearchInput] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageInput, setPageInput] = useState('');
-    const [pageSize] = useState(50); // Adjust the page size here
+    const [pageSize] = useState(50);
 
     useEffect(() => {
         fetchData();
     }, [selectedOption, currentPage]);
+
+    useEffect(() => {
+        if (searchInput.trim() === '') {
+            fetchData(); // Fetch data when searchInput is empty
+        } else {
+            debouncedFetchData();
+        }
+    }, [searchInput]);
+
+    const debouncedFetchData = debounce(() => {
+        fetchSearchData();
+    }, 500);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -26,14 +40,16 @@ function ReportSumUseBA() {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
                     page: currentPage,
-                    limit: pageSize // Ensure limit is sent to API
+                    limit: pageSize
                 }
             });
 
-            setUsers(response.data.results || []);
-            setMaxCount(response.data.maxCount || 0);
+            const results = response.data.results || [];
+            setUsers(results);
+            setMaxCount(response.data.totalCount || 0);
         } catch (error) {
             console.error('Error fetching data:', error);
+            toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล');
             setUsers([]);
             setMaxCount(0);
         } finally {
@@ -41,8 +57,36 @@ function ReportSumUseBA() {
         }
     };
 
+    const fetchSearchData = async () => {
+        if (searchInput.trim() === '') return;
+
+        setIsLoading(true);
+        const token = localStorage.getItem("token");
+        try {
+            const response = await axios.get(`http://localhost:8000/admin/searchReportBA`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { search: searchInput }
+            });
+
+            const results = response.data.results || [];
+            if (results.length > 0) {
+                setUsers(results);
+                setMaxCount(results.length);
+            } else {
+                toast.info("ไม่พบข้อมูลที่ตรงกับเงื่อนไข");
+                setUsers([]);
+                setMaxCount(0);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+            toast.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSearch = () => {
-        fetchData();
+        fetchSearchData();
     };
 
     const handlePageChange = (delta) => {
@@ -102,7 +146,9 @@ function ReportSumUseBA() {
                         ค้นหา
                     </button>
                 </div>
-                <p className="mb-4">จำนวนผู้ใช้ทั้งหมด: <strong>{maxCount}</strong> คน</p>
+                <p className="mb-4 text-lg font-medium">
+                    ข้อมูลทั้งหมดมีผู้ใช้งาน <strong className="text-blue-600">{maxCount}</strong> คน
+                </p>
                 {isLoading ? (
                     <div className="flex items-center justify-center mt-4">
                         <svg className="animate-spin h-5 w-5 mr-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -4,10 +4,11 @@ import axios from "axios";
 import CryptoJS from "crypto-js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faUser, faLock, faBank, faMoneyBillWave, faEdit, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
 
 function Edituser() {
   const [getUser, setGetUser] = useState({});
-  const [searchinput, setSearchInput] = useState({ search: "" });
+  const [searchInput, setSearchInput] = useState({ search: "" });
   const [input, setInput] = useState({
     CID: "",
     username: "",
@@ -25,6 +26,7 @@ function Edituser() {
   });
 
   const [loadRole, setLoadRole] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -38,6 +40,7 @@ function Edituser() {
         setLoadRole(response.data.role);
       } catch (err) {
         console.error("Error fetching roles:", err);
+        toast.error("Error fetching roles");
       }
     };
     fetchRoles();
@@ -45,20 +48,22 @@ function Edituser() {
 
   const hdlSearch = async () => {
     const token = localStorage.getItem("token");
+    setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/admin/user?CID=${searchinput.search}`,
+        `http://localhost:8000/admin/userID/ID?CID=${searchInput.search}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+      console.log("API Response:", response.data); // Log the response
       if (response.status === 200) {
-        const user = response.data.user;
+        const user = response.data.user || {}; // Ensure user is always an object
+        console.log("User Data:", user); // Log the user data
         setGetUser(user);
         setInput({
-          ...user,
           CID: user.CID || "",
           username: user.username || "",
           passrname1: user.passrname1 || "",
@@ -69,7 +74,7 @@ function Edituser() {
           group30ID: user.group30ID || "0",
           GSgroup30ID: user.GSgroup30ID || "0",
           GetPay: user.GetPay || "",
-          roleID: user.roleID || "",
+          typeuserID: user.typeuserID || "",
           admin: user.admin || "0",
           superuser: user.superuser || "0",
         });
@@ -81,16 +86,20 @@ function Edituser() {
             password1: originalPassword,
           }));
         }
+      } else {
+        toast.warning("No user found");
       }
     } catch (err) {
       console.error("API error:", err.response ? err.response.data : err.message);
-      alert('Error fetching user data');
+      toast.error("Error fetching user data");
+    } finally {
+      setLoading(false);
     }
   };
 
   const hdlChange = (e) => {
     const { name, value } = e.target;
-    setInput(prev => ({ ...prev, [name]: value }));
+    setInput((prev) => ({ ...prev, [name]: value }));
   };
 
   const hdlReload = () => {
@@ -111,9 +120,10 @@ function Edituser() {
   const hdlSubmit = async (e) => {
     e.preventDefault();
     if (input.password1 !== input.confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.patch(`http://localhost:8000/admin/updateuser/${input.CID}`, input, {
@@ -122,14 +132,17 @@ function Edituser() {
         }
       });
       if (response.status === 200) {
-        alert("ข้อมูลถูกแก้ไขสำเร็จ");
+        toast.success("ข้อมูลถูกแก้ไขสำเร็จ");
         hdlReload();
       }
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  console.log(input.typeuserID)
   return (
     <div className="flex min-h-screen">
       <Bar />
@@ -147,12 +160,13 @@ function Edituser() {
                 className="rounded-md border border-gray-300 px-4 py-2"
                 type="text"
                 name="search"
-                value={searchinput.search}
+                value={searchInput.search}
                 onChange={(e) => setSearchInput({ search: e.target.value })}
               />
               <button
-                className="bg-pink-500 text-white font-bold px-4 py-2 rounded-md hover:bg-pink-600 flex items-center gap-2"
+                className={`bg-pink-500 text-white font-bold px-4 py-2 rounded-md hover:bg-pink-600 flex items-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={hdlSearch}
+                disabled={loading}
               >
                 <FontAwesomeIcon icon={faSearch} />
                 ค้นหา
@@ -215,7 +229,6 @@ function Edituser() {
                 className="flex-1 border border-gray-300 rounded-md px-4 py-2"
                 type="text"
                 name="password1"
-                minLength={6}
                 value={input.password1}
                 onChange={hdlChange}
               />
@@ -237,7 +250,7 @@ function Edituser() {
             <div className="flex items-center gap-4">
               <label htmlFor="BAnumber" className="w-40 text-gray-700 flex items-center gap-2">
                 <FontAwesomeIcon icon={faBank} />
-                เลขที่ธนาคาร :
+                หมายเลขบัญชี :
               </label>
               <input
                 id="BAnumber"
@@ -251,7 +264,7 @@ function Edituser() {
             <div className="flex items-center gap-4">
               <label htmlFor="GetPay" className="w-40 text-gray-700 flex items-center gap-2">
                 <FontAwesomeIcon icon={faMoneyBillWave} />
-                ค่าตอบแทนเวร :
+                เงินเดือน :
               </label>
               <input
                 id="GetPay"
@@ -263,37 +276,66 @@ function Edituser() {
               />
             </div>
             <div className="flex items-center gap-4">
-              <label htmlFor="role" className="w-40 text-gray-700 flex items-center gap-2">
-                <FontAwesomeIcon icon={faEdit} />
-                ตำแหน่ง :
+              <label htmlFor="roleID" className="w-40 text-gray-700 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} />
+                สิทธิ์ผู้ใช้ :
               </label>
               <select
-                id="role"
+                id="roleID"
                 className="flex-1 border border-gray-300 rounded-md px-4 py-2"
-                name="roleID"
-                value={input.roleID}
+                name="typeuserID"
+                value={input.typeuserID}
                 onChange={hdlChange}
               >
-                {loadRole && loadRole.map((el) => (
-                  <option key={el.typeuserID} value={el.typeuserID}>
-                    {el.typeuserName}
+                <option disabled value="">Select Role</option>
+                {loadRole.map((role) => (
+                  <option hidden={role.typeuserID === "00"} key={role.typeuserID} value={role.typeuserID}>
+                    {role.typeuserName}
                   </option>
                 ))}
               </select>
             </div>
-
-            <div className="flex justify-end gap-4 mt-6">
+            {/* <div className="flex items-center gap-4">
+              <label htmlFor="admin" className="w-40 text-gray-700 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} />
+                Admin :
+              </label>
+              <input
+                id="admin"
+                className="border border-gray-300 rounded-md px-4 py-2"
+                type="checkbox"
+                name="admin"
+                checked={input.admin === "1"}
+                onChange={(e) => setInput((prev) => ({ ...prev, admin: e.target.checked ? "1" : "0" }))}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <label htmlFor="superuser" className="w-40 text-gray-700 flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} />
+                Superuser :
+              </label>
+              <input
+                id="superuser"
+                className="border border-gray-300 rounded-md px-4 py-2"
+                type="checkbox"
+                name="superuser"
+                checked={input.superuser === "1"}
+                onChange={(e) => setInput((prev) => ({ ...prev, superuser: e.target.checked ? "1" : "0" }))}
+              />
+            </div> */}
+            <div className="flex justify-between">
               <button
                 type="submit"
-                className="bg-blue-500 text-white font-bold px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2"
+                className={`bg-green-500 text-white font-bold px-4 py-2 rounded-md hover:bg-green-600 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
               >
                 <FontAwesomeIcon icon={faEdit} />
-                แก้ไขข้อมูล
+                แก้ไข
               </button>
               <button
                 type="button"
                 onClick={hdlReload}
-                className="bg-gray-500 text-white font-bold px-4 py-2 rounded-md hover:bg-gray-600 flex items-center gap-2"
+                className="bg-gray-500 text-white font-bold px-4 py-2 rounded-md hover:bg-gray-600"
               >
                 <FontAwesomeIcon icon={faTimes} />
                 ยกเลิก
@@ -301,10 +343,6 @@ function Edituser() {
             </div>
           </form>
         </div>
-
-        <p className="fixed right-10 bottom-5 text-gray-500">
-          โรงพยาบาลศูนย์สกลนคร
-        </p>
       </div>
     </div>
   );
